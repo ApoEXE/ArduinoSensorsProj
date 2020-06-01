@@ -11,7 +11,7 @@ float roll, pitch;
 void setup() {
   size (960, 640, P3D);
   printArray(Serial.list());
-  myPort = new Serial(this, "COM8", 9600); // starts the serial communication
+  myPort = new Serial(this, "/dev/rfcomm0", 9600); // starts the serial communication
   myPort.bufferUntil('\n');
 }
 void draw() {
@@ -29,7 +29,7 @@ void draw() {
   box (386, 40, 200); // Draw box
   textSize(25);
   fill(255, 255, 255);
-  text("www.HowToMechatronics.com", -183, 10, 101);
+  text("MS4M", -183, 10, 101);
   //delay(10);
   //println("ypr:\t" + angleX + "\t" + angleY); // Print the values to check whether we are getting proper values
 }
