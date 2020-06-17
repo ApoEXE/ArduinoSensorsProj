@@ -93,3 +93,12 @@ void motor::cycleTest() {
 	stopMotor();
 	delay(testTime);
 }
+
+void motor::moveForward() {
+  rightForward();
+  leftForward();
+}
+void motor::moveBackward() {
+  rightBackward();
+  leftBackward();
+}

@@ -12,23 +12,25 @@
 
 class motor
 {
-private:
-	uint16_t inc;
-public:
-	motor();
-	~motor();
-	void leftForward();
-	void leftBackward() ;
-	void rightForward() ;
-	void rightBackward();
-	void stopMotor();
-	void stopLeft();
-	void stopRight();
-	void toLeft();
-	void toRight();
-	void rotateLeft();
-	void rotateRight();
-	void cycleTest();
+  private:
+    uint16_t inc;
+  public:
+    motor();
+    ~motor();
+    void leftForward();
+    void leftBackward() ;
+    void rightForward() ;
+    void rightBackward();
+    void stopMotor();
+    void stopLeft();
+    void stopRight();
+    void toLeft();
+    void toRight();
+    void rotateLeft();
+    void rotateRight();
+    void cycleTest();
+    void moveForward();
+    void moveBackward();
 
 };
 #endif
