@@ -2,13 +2,12 @@
 #define MOTOR_H
 #include "Arduino.h"
 
-
-#define in1 5 //rightside
-#define in2 6 //right side
-#define enRight 3 //left side
-#define in3 9 //left side
-#define in4 10 //left side
-#define enLeft 11 //left side
+#define enA 3 //gray
+#define in1 2 // purple
+#define in2 8//blue
+#define in3 9 //green
+#define in4 12 //yellow
+#define enB 6 //orange
 
 class motor
 {

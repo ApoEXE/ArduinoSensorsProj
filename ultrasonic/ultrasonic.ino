@@ -1,18 +1,18 @@
 #include "motor.h"
 //#include "servoMove.h"
 #include <Servo.h>
-#define in1 5 //rightside
-#define in2 6 //right side
-#define enRight 3 //left side
-#define in3 9 //left side
-#define in4 10 //left side
-#define enLeft 11 //left side
+int calculateDistance();
+
+void avoidLogic2();
+void servo(uint8_t angle);
 motor mo;
 //servoMove ser;
 Servo myservo;
 const int trigPin = 7;
 const int echoPin = 4;
 const int servoPwm = 5;
+uint8_t last_angle = 90;
+int dis = 0;
 long duration;
 int distance;
 void setup()
@@ -23,53 +23,61 @@ void setup()
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   Serial.begin(9600);
   mo = motor();
-  myservo.write(115);//lookFront
+
 
 }
-
+int avoid = 40;
+int avoid_ar[2] = {0};
 void loop()
 {
-  analogWrite(enLeft, 50);
-  analogWrite(enRight, 50);
-  mo.leftForward();
-  //mo.cycleTest();
-  //ser.servoTest();
-  //Serial.println(so.readDistance());
-  //ser.lookRight();
-  //delay(200);
-  //ser.lookLeft();
-  //delay(200);
-  //Serial.println(ser.servoRead());
   //sweep();
-  /*
-    analogWrite(enLeft, 50);
-    analogWrite(enRight, 50);
-    int dis = calculateDistance();
-    Serial.println(dis);
-    if (dis > 20)
+
+  analogWrite(enA, 100);
+  analogWrite(enB, 100);
+  dis = calculateDistance();
+  //Serial.println(dis);
+  if (dis > avoid) {
     mo.moveForward();
+  }
 
-    if (dis < 20) {
-    mo.stopMotor();}
+  if (dis < avoid) {
+    mo.moveBackward();
+    delay(200);
+    mo.stopMotor();
+    servo(0);
+    delay(100);
+    avoid_ar[0] = calculateDistance();
+    servo(180);
+    delay(100);
+    avoid_ar[1] = calculateDistance();
+    avoidLogic2();
+  }
 
-    myservo.write(20);//lookRight
-    dis = calculateDistance();
-    if (dis < 20) {
-      myservo.write(140);//lookLeft
+}
+void avoidLogic2() {
+  Serial.println(avoid_ar[0]);
+  Serial.println(avoid_ar[1]);
+  if (avoid_ar[0] >= avoid) { //look right is empty
+    analogWrite(enA, 100);
+    analogWrite(enB, 100);
+    mo.toRight();
+    servo(90);
+
+  } else if (avoid_ar[1] >= avoid) { //look right is empty
+    analogWrite(enA, 60);
+    analogWrite(enB, 60);
+    mo.toLeft();
+    servo(90);
+  }
+  if (avoid_ar[1] < avoid && avoid_ar[0] < avoid) {
+    while (dis < avoid) {
       dis = calculateDistance();
-      if (dis < 20) {
-        while (dis < 20) {
-          dis = calculateDistance();
-          mo.rotateLeft();
-        }
-        mo.stopMotor();
-        myservo.write(115);//lookFront
-      }
+      mo.rotateLeft();
     }
-    }
-  */
+    servo(90);
 
-
+  }
+  //delay(10);
 }
 
 // Function for calculating the distance measured by the Ultrasonic sensor
@@ -86,6 +94,20 @@ int calculateDistance() {
   return distance;
 }
 
+void servo(uint8_t angle) {
+
+  if (angle > last_angle)
+    for (int i = last_angle; i <= angle; i++) {
+      myservo.write(i);//lookFront
+      delay(10);
+    }
+  else
+    for (int i = last_angle; i >= angle; i--) {
+      myservo.write(i);//lookFront
+      delay(10);
+    }
+  last_angle =  angle;
+}
 void sweep() {
   for (int i = 15; i <= 165; i++) {
     myservo.write(i);
