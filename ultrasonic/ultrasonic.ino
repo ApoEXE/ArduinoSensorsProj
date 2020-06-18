@@ -1,10 +1,15 @@
 #include "motor.h"
 //#include "servoMove.h"
 #include <Servo.h>
-int calculateDistance();
 
+
+int calculateDistance();
 void avoidLogic2();
 void servo(uint8_t angle);
+bool scanFront();
+
+
+
 motor mo;
 //servoMove ser;
 Servo myservo;
@@ -12,9 +17,15 @@ const int trigPin = 7;
 const int echoPin = 4;
 const int servoPwm = 5;
 uint8_t last_angle = 90;
-int dis = 0;
+bool scan = false;
+int avoid = 30;
+int avoid_ar[2] = {0};
+int dis = 100;
 long duration;
 int distance;
+
+
+
 void setup()
 {
   // put your setup code here, to run once:
@@ -23,58 +34,64 @@ void setup()
   pinMode(echoPin, INPUT); // Sets the echoPin as an Input
   Serial.begin(9600);
   mo = motor();
-
-
+  analogWrite(enA, 150);
+  analogWrite(enB, 150);
+  scan = false;
+  Serial.println("START");
 }
-int avoid = 40;
-int avoid_ar[2] = {0};
+
 void loop()
 {
   //sweep();
 
-  analogWrite(enA, 100);
-  analogWrite(enB, 100);
-  dis = calculateDistance();
-  //Serial.println(dis);
-  if (dis > avoid) {
-    mo.moveForward();
-  }
 
-  if (dis < avoid) {
+
+  if (!scanFront()) {
+    Serial.println("forward");
+    mo.moveForward();
+  } else {
+    Serial.println("STOP");
     mo.moveBackward();
-    delay(200);
+    delay(300);
     mo.stopMotor();
-    servo(0);
-    delay(100);
+    servo(15);
+    delay(10);
     avoid_ar[0] = calculateDistance();
-    servo(180);
-    delay(100);
+    Serial.print("avoid_ar[0] right ");
+    Serial.println(avoid_ar[0]);
+    servo(165);
+    delay(10);
     avoid_ar[1] = calculateDistance();
+    Serial.print("avoid_ar[1] left ");
+    Serial.println(avoid_ar[1]);
     avoidLogic2();
   }
 
 }
 void avoidLogic2() {
-  Serial.println(avoid_ar[0]);
-  Serial.println(avoid_ar[1]);
-  if (avoid_ar[0] >= avoid) { //look right is empty
-    analogWrite(enA, 100);
-    analogWrite(enB, 100);
+  //Serial.println(avoid_ar[0]);
+  //Serial.println(avoid_ar[1]);
+  if (avoid_ar[0] >= avoid && avoid_ar[0] >= avoid_ar[1]) { //look right is empty
+    Serial.println("movin to right");
     mo.toRight();
-    servo(90);
-
-  } else if (avoid_ar[1] >= avoid) { //look right is empty
-    analogWrite(enA, 60);
-    analogWrite(enB, 60);
+    delay(500);
+    mo.stopMotor();
+    scan = false;
+  } else if (avoid_ar[1] >= avoid && avoid_ar[1] >= avoid_ar[0]) { //look right is empty
+    Serial.println("movin to left");
     mo.toLeft();
-    servo(90);
+    delay(500);
+    mo.stopMotor();
+    scan = false;
   }
   if (avoid_ar[1] < avoid && avoid_ar[0] < avoid) {
+    Serial.println("rotate");
     while (dis < avoid) {
       dis = calculateDistance();
       mo.rotateLeft();
     }
-    servo(90);
+    scan = false;
+
 
   }
   //delay(10);
@@ -129,4 +146,42 @@ void sweep() {
     Serial.print(distance);
     Serial.print(".");
   }
+}
+
+
+bool scanFront() {
+
+  uint16_t di = 0;
+  uint8_t base = 25;
+  uint8_t bottom = base * 3;
+  uint8_t top = 180 - bottom;
+  Serial.println("scan");
+  for (int i = myservo.read(); i <= top; i++) {
+
+    myservo.write(i);//lookFront
+    delay(1);
+    di = calculateDistance();
+    if (di < avoid && di > 5) {
+      Serial.println(di);
+      Serial.println("in 1");
+      scan = true;
+      break;
+    }
+  }
+  if (!scan) {
+    for (int i = myservo.read(); i > bottom; i--) {
+      myservo.write(i);//lookFront
+      delay(1);
+      di = calculateDistance();
+      if (di < avoid && di > 5) {
+        Serial.println(di);
+        Serial.println("in 2");
+        scan = true;
+        break;
+      }
+    }
+
+  }
+  Serial.println(scan);
+  return scan;
 }
